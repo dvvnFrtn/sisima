@@ -14,18 +14,7 @@ func CreatePostgresEnums() error {
 		END$$;
 	`
 
-	classSQL := `
-		DO $$ BEGIN
-		IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'class_enum') THEN
-			CREATE TYPE class_enum AS ENUM ('0','1','2','3','4','5','6','7');
-		END IF;
-		END$$;
-	`
-
 	if err := db.Exec(genderSQL).Error; err != nil {
-		return err
-	}
-	if err := db.Exec(classSQL).Error; err != nil {
 		return err
 	}
 
@@ -38,17 +27,4 @@ type Gender string
 const (
 	Male   Gender = "MALE"
 	Female Gender = "FEMALE"
-)
-
-type Class int
-
-const (
-	Class0 Class = 0
-	Class1 Class = 1
-	Class2 Class = 2
-	Class3 Class = 3
-	Class4 Class = 4
-	Class5 Class = 5
-	Class6 Class = 6
-	Class7 Class = 7
 )
