@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/dvvnFrtn/sisima/internal/config"
 	"github.com/dvvnFrtn/sisima/internal/logger"
-	"github.com/dvvnFrtn/sisima/internal/model"
-	"github.com/dvvnFrtn/sisima/internal/route"
+	"github.com/dvvnFrtn/sisima/internal/models"
+	"github.com/dvvnFrtn/sisima/internal/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
@@ -23,6 +23,8 @@ func main() {
 
 	app.Use(logger.HTTPLogger())
 
-	route.Register(app)
+	route.IndexRoutes(app)
+	route.StudentRoutes(app)
+
 	app.Listen(":8888")
 }

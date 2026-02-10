@@ -1,6 +1,6 @@
 .env
-.env.*
 sisima
 logs.db
 *.db
 .vscode/
+tmp/
