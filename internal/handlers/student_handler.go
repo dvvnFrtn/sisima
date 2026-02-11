@@ -19,6 +19,37 @@ func NewStudentHandler(s service.StudentService) *studentHandler {
 }
 
 // method
+func (h *studentHandler) FindAllPaginated(c fiber.Ctx) error {
+	data, err := h.service.FindAllPaginated(0, 3)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"title":  "INTERNAL_ERROR",
+			"errors": err,
+		})
+	}
+
+	return c.Status(200).JSON(data)
+}
+
+func (h *studentHandler) FindDetailById(c fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"title": "INVALID_ID",
+		})
+	}
+
+	student, err := h.service.FindDetailById(id)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"title": "NOT_FOUND",
+		})
+	}
+	response := dto.ToStudentResponse(student)
+	return c.Status(200).JSON(response)
+}
+
 func (h *studentHandler) Create(c fiber.Ctx) error {
 	var req dto.CreateStudentRequest
 
@@ -54,24 +85,5 @@ func (h *studentHandler) Create(c fiber.Ctx) error {
 
 	response := dto.ToStudentResponse(student)
 
-	return c.Status(200).JSON(response)
-}
-
-func (h *studentHandler) FindDetailById(c fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := uuid.Parse(idParam)
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"title": "INVALID_ID",
-		})
-	}
-
-	student, err := h.service.FindDetailById(id)
-	if err != nil {
-		return c.Status(404).JSON(fiber.Map{
-			"title": "NOT_FOUND",
-		})
-	}
-	response := dto.ToStudentResponse(student)
 	return c.Status(200).JSON(response)
 }

@@ -3,7 +3,7 @@ package dto
 import (
 	"time"
 
-	"github.com/dvvnFrtn/sisima/internal/models"
+	model "github.com/dvvnFrtn/sisima/internal/models"
 	"github.com/google/uuid"
 )
 
