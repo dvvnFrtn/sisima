@@ -3,7 +3,7 @@ package route
 import (
 	handler "github.com/dvvnFrtn/sisima/internal/handlers"
 	service "github.com/dvvnFrtn/sisima/internal/services"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func IndexRoutes(app *fiber.App) {

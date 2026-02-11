@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func newRequestID() string {
@@ -29,7 +29,7 @@ func HTTPLogger() fiber.Handler {
 
 	isDev := env == "development"
 
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		start := time.Now()
 		requestID := newRequestID()
 

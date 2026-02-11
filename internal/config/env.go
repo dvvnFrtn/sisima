@@ -12,9 +12,6 @@ func Environment() string {
 func IsDevelopment() bool {
 	env := os.Getenv("ENVIRONMENT")
 	if env == "" {
-		env = os.Getenv("FIBER_ENV")
-	}
-	if env == "" {
 		env = "development"
 	}
 	return env == "development"

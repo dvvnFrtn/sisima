@@ -3,15 +3,12 @@ package main
 import (
 	"github.com/dvvnFrtn/sisima/internal/config"
 	"github.com/dvvnFrtn/sisima/internal/logger"
-	"github.com/dvvnFrtn/sisima/internal/models"
-	"github.com/dvvnFrtn/sisima/internal/routes"
-	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
+	model "github.com/dvvnFrtn/sisima/internal/models"
+	route "github.com/dvvnFrtn/sisima/internal/routes"
+	"github.com/gofiber/fiber/v3"
 )
 
 func main() {
-	_ = godotenv.Load()
-
 	config.ConnectDatabase()
 	model.Migrate()
 
