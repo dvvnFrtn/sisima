@@ -3,7 +3,7 @@ package handler
 import (
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type APIInfo struct {
@@ -15,7 +15,7 @@ type APIInfo struct {
 	Copyright   string   `json:"copyright"`
 }
 
-func IndexHandler(c *fiber.Ctx) error {
+func IndexHandler(c fiber.Ctx) error {
 	info := APIInfo{
 		Name:        "SISIMA",
 		Version:     "1.0",
