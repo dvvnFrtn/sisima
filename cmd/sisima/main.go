@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/dvvnFrtn/sisima/internal/config"
 	"github.com/dvvnFrtn/sisima/internal/logger"
 	model "github.com/dvvnFrtn/sisima/internal/models"
@@ -20,8 +22,7 @@ func main() {
 
 	app.Use(logger.HTTPLogger())
 
-	route.IndexRoutes(app)
-	route.StudentRoutes(app)
+	route.RegisterRoutes(app)
 
-	app.Listen(":8888")
+	app.Listen(":" + os.Getenv("SERVER_PORT"))
 }
