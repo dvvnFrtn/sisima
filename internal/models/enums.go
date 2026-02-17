@@ -13,8 +13,29 @@ func CreatePostgresEnums() error {
 		END IF;
 		END$$;
 	`
-
 	if err := db.Exec(genderSQL).Error; err != nil {
+		return err
+	}
+
+	btiSQL := `
+		DO $$ BEGIN
+		IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'billing_type_interval') THEN
+			CREATE TYPE billing_type_interval AS ENUM ('MONTH','YEAR', 'ONCE');
+		END IF;
+		END$$;
+	`
+	if err := db.Exec(btiSQL).Error; err != nil {
+		return err
+	}
+
+	bsSQL := `
+		DO $$ BEGIN
+		IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'billing_status') THEN
+			CREATE TYPE billing_status AS ENUM ('UNPAID','PAID');
+		END IF;
+		END$$;
+	`
+	if err := db.Exec(bsSQL).Error; err != nil {
 		return err
 	}
 
