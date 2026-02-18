@@ -11,9 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
-func ConnectDatabase() {
+func ConnectDatabase() (*gorm.DB, error) {
 	if err := godotenv.Load(); err != nil {
 		log.Println(".env not found, using system env")
 	}
@@ -47,6 +45,5 @@ func ConnectDatabase() {
 	sqlDB.SetMaxIdleConns(maxIdleConns)
 	sqlDB.SetConnMaxLifetime(0)
 
-	DB = db
-	fmt.Println("Database connected successfully!")
+	return db, err
 }

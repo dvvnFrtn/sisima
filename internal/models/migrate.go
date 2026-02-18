@@ -1,10 +1,13 @@
 package model
 
-import "github.com/dvvnFrtn/sisima/internal/config"
+import (
+	"gorm.io/gorm"
+)
 
 func Migrate() {
-	db := config.DB
+	// db := *gorm.DB
 
+	var db *gorm.DB
 	if err := CreatePostgresEnums(); err != nil {
 		panic(err)
 	}

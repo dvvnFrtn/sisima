@@ -1,11 +1,14 @@
 package model
 
-import "github.com/dvvnFrtn/sisima/internal/config"
+import (
+	"gorm.io/gorm"
+)
 
 // Create Enums
 func CreatePostgresEnums() error {
-	db := config.DB
+	// db := config.DB
 
+	var db *gorm.DB
 	genderSQL := `
 		DO $$ BEGIN
 		IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'gender_enum') THEN
