@@ -20,3 +20,17 @@ func StudentRoutes(app *fiber.App) {
 	resource.Get("/:id", handler.FindDetailById)
 	resource.Post("", handler.Create)
 }
+
+func BillingRoutes(app *fiber.App) {
+	service := service.NewBillingService()
+	handler := handler.NewBillingHandler(service)
+
+	app.Post("/billing-types", handler.CreateBillingType)
+	app.Patch("/billing-types/:billing_type_id", handler.UpdateBillingType)
+	app.Get("/billing-types", handler.GetAllBillingType)
+	app.Get("/billing-types/:billing_type_id", handler.GetBillingType)
+
+	app.Post("/billings", handler.CreateBilling)
+	app.Get("/billings", handler.GetAllBilling)
+	app.Get("/billings/:billing_id", handler.GetBilling)
+}

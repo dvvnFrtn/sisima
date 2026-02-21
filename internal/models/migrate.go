@@ -1,3 +1,4 @@
+// Package model defines data structures used by the data access layer for persistence and retrieval.
 package model
 
 import "github.com/dvvnFrtn/sisima/internal/config"
@@ -10,10 +11,9 @@ func Migrate() {
 	}
 
 	err := db.AutoMigrate(
-		&Student{},
+		&Student{}, &BillingType{}, &Billing{},
 		// &OtherModel{},
 	)
-
 	if err != nil {
 		panic(err)
 	}
