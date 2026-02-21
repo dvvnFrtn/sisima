@@ -2,6 +2,7 @@ package dto
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -21,6 +22,14 @@ func (e *ValidationError) Error() string {
 }
 
 func Validate(s interface{}) *ValidationError {
+	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
 	err := validate.Struct(s)
 	if err == nil {
 		return nil
@@ -57,6 +66,8 @@ func Validate(s interface{}) *ValidationError {
 			message = "must contain only letters"
 		case "oneof":
 			message = "must be one of: " + err.Param()
+		case "gt":
+			message = "must be greater than: " + err.Param()
 		default:
 			message = "is invalid"
 		}

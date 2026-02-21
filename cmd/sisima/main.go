@@ -22,6 +22,7 @@ func main() {
 
 	route.IndexRoutes(app)
 	route.StudentRoutes(app)
+	route.BillingRoutes(app)
 
 	app.Listen(":8888")
 }

@@ -2,18 +2,23 @@
 package service
 
 import (
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/dvvnFrtn/sisima/internal/config"
+	"github.com/dvvnFrtn/sisima/internal/dto"
 	model "github.com/dvvnFrtn/sisima/internal/models"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type BillingService interface {
-	CreateBillingType(param CreateBillingTypeRequest) error
+	CreateBillingType(param dto.CreateBillingTypeRequest) error
+	UpdateBillingType(tID uuid.UUID, param dto.UpdateBillingTypeRequest) error
+	GetAllBillingType() ([]dto.BillingTypeResponse, error)
+	GetBillingType(ID uuid.UUID) (dto.BillingTypeResponse, error)
+
+	CreateBilling(param dto.CreateBillingRequest) error
+	GetAllBilling() ([]dto.BillingResponse, error)
+	GetBilling(ID uuid.UUID) (dto.BillingResponse, error)
 }
 
 type billingService struct{}
@@ -22,181 +27,112 @@ func NewBillingService() BillingService {
 	return &billingService{}
 }
 
-type CreateBillingTypeRequest struct {
-	Name          string
-	DefaultAmount int64
-	Recurring     *struct {
-		Interval      string
-		IntervalCount int64
-	}
-}
-
-func (bs *billingService) CreateBillingType(param CreateBillingTypeRequest) error {
-	bt := model.BillingType{
-		ID:     uuid.New(),
-		Name:   param.Name,
-		Amount: param.DefaultAmount,
-	}
-
-	if param.Recurring != nil {
-		if !model.BillingTypeInterval(param.Recurring.Interval).IsValid() {
-			return fmt.Errorf("invalid interval value '%s'", param.Recurring.Interval)
-		}
-		bt.Interval = model.BillingTypeInterval(param.Recurring.Interval)
-
-		if param.Recurring.Interval != string(model.BillingTypeIntevalOnce) && param.Recurring.IntervalCount == 0 {
-			return fmt.Errorf("interval_count value can't be zero for interval '%s'", param.Recurring.Interval)
-		}
-		bt.IntervalCount = param.Recurring.IntervalCount
-	}
-
-	if err := config.DB.Create(&bt).Error; err != nil {
-		return fmt.Errorf("insert billing_type: %w: %T", err, err)
+func (bs *billingService) CreateBillingType(param dto.CreateBillingTypeRequest) error {
+	if err := config.DB.Create(&model.BillingType{
+		ID:            uuid.New(),
+		Name:          param.Name,
+		Amount:        param.Amount,
+		Interval:      model.BillingTypeInterval(param.Recurring.Interval),
+		IntervalCount: *param.Recurring.IntervalCount,
+	}).Error; err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (bs *billingService) GetAllBillingType() error {
+func (bs *billingService) GetAllBillingType() ([]dto.BillingTypeResponse, error) {
 	var bts []model.BillingType
 	if err := config.DB.Find(&bts).Error; err != nil {
-		return fmt.Errorf("find billing_type: %w", err)
+		return []dto.BillingTypeResponse{}, err
 	}
 
-	return nil
+	return dto.Map(bts, dto.ToBillingTypeResponse), nil
 }
 
-func (bs *billingService) GetBillingType(ID uuid.UUID) error {
+func (bs *billingService) GetBillingType(ID uuid.UUID) (dto.BillingTypeResponse, error) {
 	var bt model.BillingType
-	if err := config.DB.Find(&bt, ID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("billing_type with id '%s' could'nt be found", ID.String())
-		}
-		return fmt.Errorf("find billing_type: %w", err)
+	if err := config.DB.First(&bt, ID).Error; err != nil {
+		return dto.BillingTypeResponse{}, err
 	}
 
-	return nil
+	return dto.ToBillingTypeResponse(bt), nil
 }
 
-type UpdateBillingTypeRequest struct {
-	ID            uuid.UUID
-	Name          string
-	DefaultAmount int64
-}
-
-func (bs *billingService) UpdateBillingType(param UpdateBillingTypeRequest) error {
+func (bs *billingService) UpdateBillingType(tID uuid.UUID, param dto.UpdateBillingTypeRequest) error {
 	var bt model.BillingType
-	if err := config.DB.Find(&bt, param.ID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("billing_type with id '%s' could'nt be found", param.ID)
-		}
-		return fmt.Errorf("find billing_type: %w", err)
+	if err := config.DB.Find(&bt, tID).Error; err != nil {
+		return err
 	}
 
-	bt.Name = param.Name
-	bt.Amount = param.DefaultAmount
+	if param.Name != nil {
+		bt.Name = *param.Name
+	}
+
+	if param.Amount != nil {
+		bt.Amount = *param.Amount
+	}
 
 	if err := config.DB.Save(&bt).Error; err != nil {
-		return fmt.Errorf("save billing_type: %w", err)
+		return err
 	}
 
 	return nil
 }
 
-type CreateBillingRequest struct {
-	StudentID     uuid.UUID
-	BillingTypeID uuid.UUID
-	Period        time.Time
-}
-
-func (bs *billingService) CreateBilling(param CreateBillingRequest) error {
+func (bs *billingService) CreateBilling(param dto.CreateBillingRequest) error {
 	var bt model.BillingType
-	if err := config.DB.Find(&bt, param.BillingTypeID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("billing_type with id '%s' could'nt be found", param.BillingTypeID)
-		}
-		return fmt.Errorf("find billing_type: %w", err)
+	if err := config.DB.Find(&bt, uuid.MustParse(param.BillingTypeID)).
+		Error; err != nil {
+		return err
+	}
+
+	periodRaw, err := time.Parse("02-01-2006", param.Period)
+	if err != nil {
+		return err
 	}
 
 	var period time.Time
 	switch bt.Interval {
 	case model.BillingTypeIntervalYear:
-		period = bs.truncateToYear(param.Period)
+		period = bs.truncateToYear(periodRaw)
 	case model.BillingTypeIntervalMonth:
-		period = bs.truncateToMonth(param.Period)
+		period = bs.truncateToMonth(periodRaw)
 	default:
-		period = param.Period
+		period = periodRaw
 	}
 
-	b := model.Billing{
+	if err := config.DB.Create(model.Billing{
 		ID:            uuid.New(),
 		BillingTypeID: bt.ID,
-		StudentID:     param.StudentID,
+		StudentID:     uuid.MustParse(param.StudentID),
 		Amount:        bt.Amount,
 		Interval:      bt.Interval,
 		Status:        model.BillingStatusUnpaid,
 		Period:        period,
-	}
-	if err := config.DB.Create(&b).Error; err != nil {
-		return fmt.Errorf("create billing: %w", err)
-	}
-
-	return nil
-}
-
-type UpdateBillingRequest struct {
-	ID     uuid.UUID
-	Amount int64
-	Status string
-}
-
-func (bs *billingService) UpdateBilling(param UpdateBillingRequest) error {
-	var bl model.Billing
-	if err := config.DB.First(&bl, param.ID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("billing with id '%s' could'nt be found", param.ID)
-		}
-		return fmt.Errorf("find billing: %w", err)
-	}
-
-	bl.Amount = param.Amount
-	bl.Status = model.BillingStatus(param.Status)
-
-	if err := config.DB.Save(&bl).Error; err != nil {
-		return fmt.Errorf("save billing: %w", err)
+	}).Error; err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (bs *billingService) GetAllBilling() error {
+func (bs *billingService) GetAllBilling() ([]dto.BillingResponse, error) {
 	var bls []model.Billing
 	if err := config.DB.Find(&bls).Error; err != nil {
-		return fmt.Errorf("find billing: %w", err)
+		return []dto.BillingResponse{}, err
 	}
 
-	return nil
+	return dto.Map(bls, dto.ToBillingResponse), nil
 }
 
-func (bs *billingService) GetBilling(ID uuid.UUID) error {
+func (bs *billingService) GetBilling(ID uuid.UUID) (dto.BillingResponse, error) {
 	var bl model.Billing
 	if err := config.DB.First(&bl, ID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("billing with id '%s' could'nt be found", ID)
-		}
-		return fmt.Errorf("find billing: %w", err)
+		return dto.BillingResponse{}, err
 	}
 
-	return nil
-}
-
-func (bs *billingService) GetStudentBilling(sID uuid.UUID) error {
-	var bls []model.Billing
-	if err := config.DB.Where("student_id = ?", sID).Find(&bls).Error; err != nil {
-		return fmt.Errorf("find billing: %w", err)
-	}
-
-	return nil
+	return dto.ToBillingResponse(bl), nil
 }
 
 func (bs *billingService) truncateToMonth(t time.Time) time.Time {

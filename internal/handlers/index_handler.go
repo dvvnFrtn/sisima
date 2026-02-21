@@ -1,10 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"time"
 
-	service "github.com/dvvnFrtn/sisima/internal/services"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -25,18 +23,6 @@ func IndexHandler(c fiber.Ctx) error {
 		Developers:  []string{"Achmed Hibatillah", "M. Rizki Fajar"},
 		Timestamp:   time.Now().Format(time.RFC3339),
 		Copyright:   "© 2026 SISIMA. All rights reserved.",
-	}
-
-	svc := service.NewBillingService()
-	if err := svc.CreateBillingType(service.CreateBillingTypeRequest{
-		Name:          "SPP",
-		DefaultAmount: 50000,
-		Recurring: &struct {
-			Interval      string
-			IntervalCount int64
-		}{"MONTH", 1},
-	}); err != nil {
-		fmt.Println(err)
 	}
 
 	return c.JSON(info)
