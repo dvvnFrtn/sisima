@@ -41,19 +41,6 @@ func (s *studentService) FindAllPaginated(page, limit int, sort, order string) (
 		return nil, 0, err
 	}
 	return students, total, nil
-
-	// data := dto.Pagination{
-	// 	Data: make([]interface{}, len(students)),
-	// 	Meta: dto.Meta{
-	// 		Page: page,
-	// 	},
-	// }
-
-	// for i, v := range students {
-	// 	data.Data[i] = v
-	// }
-
-	// return &data, nil
 }
 
 func (s *studentService) FindDetailById(id uuid.UUID) (*model.Student, error) {

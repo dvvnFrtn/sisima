@@ -1,3 +1,4 @@
 # SISIMA
 
-© 2026 SISIMA. All rights reserved.
+© 2026 SISIMA Application. All rights reserved.
+

@@ -7,6 +7,28 @@ import (
 	"github.com/google/uuid"
 )
 
+// Exception
+type ExceptionTitle string
+
+const (
+	InvalidRequest ExceptionTitle = "INVALID_REQUEST"
+	ValidationErr  ExceptionTitle = "VALIDATION_ERROR"
+	InternalErr    ExceptionTitle = "INTERNAL_ERROR"
+)
+
+type ExceptionResponse struct {
+	Title  ExceptionTitle `json:"title"`
+	Errors interface{}    `json:"errors,omitempty"`
+}
+
+func NewExceptionResponse(title ExceptionTitle, errors interface{}) ExceptionResponse {
+	return ExceptionResponse{
+		Title:  title,
+		Errors: errors,
+	}
+}
+
+// Other
 type CreateStudentRequest struct {
 	ID        uuid.UUID `json:"id"`
 	NIS       string    `json:"nis" validate:"required,min=1,max=22"`
