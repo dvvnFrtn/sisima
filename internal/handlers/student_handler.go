@@ -44,6 +44,13 @@ func (h *studentHandler) FindAllPaginated(c fiber.Ctx) error {
 		limit = defaultLimit
 	}
 
+	if sort != "full_name" && sort != "created_at" {
+		return c.Status(422).JSON(dto.NewExceptionResponse(
+			dto.InvalidQueryParam,
+			"invalid query param sort, must be either full_name or created_at",
+		))
+	}
+
 	students, total, err := h.service.FindAllPaginated(page, limit, sort, order)
 
 	if err != nil {

@@ -11,9 +11,10 @@ import (
 type ExceptionTitle string
 
 const (
-	InvalidRequest ExceptionTitle = "INVALID_REQUEST"
-	ValidationErr  ExceptionTitle = "VALIDATION_ERROR"
-	InternalErr    ExceptionTitle = "INTERNAL_ERROR"
+	InvalidQueryParam ExceptionTitle = "INVALID_QUERY_PARAM"
+	InvalidRequest    ExceptionTitle = "INVALID_REQUEST"
+	ValidationErr     ExceptionTitle = "VALIDATION_ERROR"
+	InternalErr       ExceptionTitle = "INTERNAL_ERROR"
 )
 
 type ExceptionResponse struct {
