@@ -26,32 +26,42 @@ func (h *studentHandler) FindAllPaginated(c fiber.Ctx) error {
 		defaultPage  = 1
 		defaultLimit = 10
 		defaultSort  = "full_name"
-		defaultOrder = "ASC"
 	)
 
 	pageStr := c.Query("page", strconv.Itoa(defaultPage))
 	limitStr := c.Query("limit", strconv.Itoa(defaultLimit))
 	sort := c.Query("sort", defaultSort)
-	order := c.Query("order", defaultOrder)
 	filterGenderStr := c.Query("gender")
 	filterClassStr := c.Query("class")
 	keyword := c.Query("k")
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
-		page = defaultPage
+		return c.Status(422).JSON(dto.NewExceptionResponse(
+			dto.InvalidQueryParam,
+			"invalid page query parameter: must be negative",
+		))
 	}
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 {
-		limit = defaultLimit
+		return c.Status(422).JSON(dto.NewExceptionResponse(
+			dto.InvalidQueryParam,
+			"invalid limit query parameter: must be negative",
+		))
 	}
 
+	var order string
 	if sort != "full_name" && sort != "created_at" && sort != "updated_at" {
 		return c.Status(422).JSON(dto.NewExceptionResponse(
 			dto.InvalidQueryParam,
 			"invalid sort query parameter: must be \"full_name\", \"created_at\", or \"updated_at\"",
 		))
+	}
+	if sort == "full_name" {
+		order = "ASC"
+	} else {
+		order = "DESC"
 	}
 
 	var filterGender model.Gender
@@ -127,7 +137,7 @@ func (h *studentHandler) FindDetailById(c fiber.Ctx) error {
 		})
 	}
 	response := dto.ToStudentResponse(student)
-	return c.Status(200).JSON(response)
+	return c.Status(200).JSON(dto.NewGetOne[dto.StudentResponse](*response))
 }
 
 func (h *studentHandler) Create(c fiber.Ctx) error {
