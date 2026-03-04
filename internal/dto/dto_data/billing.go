@@ -1,76 +1,9 @@
-package dto
+package dtodata
 
 import (
-	"time"
-
 	model "github.com/dvvnFrtn/sisima/internal/models"
 	"github.com/google/uuid"
 )
-
-// Exception
-type ExceptionTitle string
-
-const (
-	InvalidQueryParam ExceptionTitle = "INVALID_QUERY_PARAM"
-	InvalidRequest    ExceptionTitle = "INVALID_REQUEST"
-	ValidationErr     ExceptionTitle = "VALIDATION_ERROR"
-	InternalErr       ExceptionTitle = "INTERNAL_ERROR"
-)
-
-type ExceptionResponse struct {
-	Title  ExceptionTitle `json:"title"`
-	Errors interface{}    `json:"errors,omitempty"`
-}
-
-func NewExceptionResponse(title ExceptionTitle, errors interface{}) ExceptionResponse {
-	return ExceptionResponse{
-		Title:  title,
-		Errors: errors,
-	}
-}
-
-// Other
-type CreateStudentRequest struct {
-	ID        uuid.UUID `json:"id"`
-	NIS       string    `json:"nis" validate:"max=22"`
-	NISN      string    `json:"nisn" validate:"max=22"`
-	FullName  string    `json:"full_name" validate:"required,min=1,max=70"`
-	NickName  string    `json:"nick_name" validate:"omitempty,min=1,max=20"`
-	Gender    string    `json:"gender" validate:"required,oneof=MALE FEMALE"`
-	EntryYear string    `json:"entry_year" validate:"max=4"`
-	Class     string    `json:"class" validate:"required,len=1,oneof=N 1 2 3 4 5 6 L"`
-}
-
-type StudentResponse struct {
-	ID        uuid.UUID `json:"id"`
-	NIS       string    `json:"nis"`
-	NISN      string    `json:"nisn"`
-	FullName  string    `json:"full_name"`
-	NickName  string    `json:"nick_name"`
-	Gender    string    `json:"gender"`
-	EntryYear string    `json:"entry_year"`
-	Class     string    `json:"class"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func ToStudentResponse(s *model.Student) *StudentResponse {
-	if s == nil {
-		return nil
-	}
-	return &StudentResponse{
-		ID:        s.ID,
-		NIS:       s.NIS,
-		NISN:      s.NISN,
-		FullName:  s.FullName,
-		NickName:  s.NickName,
-		Gender:    string(s.Gender),
-		EntryYear: s.EntryYear,
-		Class:     s.Class,
-		CreatedAt: s.CreatedAt,
-		UpdatedAt: s.UpdatedAt,
-	}
-}
 
 type CreateBillingTypeRequest struct {
 	Name      string               `json:"name" validate:"required"`

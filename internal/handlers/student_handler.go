@@ -3,7 +3,10 @@ package handler
 import (
 	"strconv"
 
-	"github.com/dvvnFrtn/sisima/internal/dto"
+	dtodata "github.com/dvvnFrtn/sisima/internal/dto/dto_data"
+	dtoexception "github.com/dvvnFrtn/sisima/internal/dto/dto_exception"
+	dtovalidaton "github.com/dvvnFrtn/sisima/internal/dto/dto_validaton"
+	dtowrapper "github.com/dvvnFrtn/sisima/internal/dto/dto_wrapper"
 	model "github.com/dvvnFrtn/sisima/internal/models"
 	service "github.com/dvvnFrtn/sisima/internal/services"
 	"github.com/gofiber/fiber/v3"
@@ -37,24 +40,24 @@ func (h *studentHandler) FindAllPaginated(c fiber.Ctx) error {
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil || page < 1 {
-		return c.Status(422).JSON(dto.NewExceptionResponse(
-			dto.InvalidQueryParam,
+		return c.Status(422).JSON(dtoexception.NewExceptionResponse(
+			dtoexception.InvalidQueryParam,
 			"invalid page query parameter: must be negative",
 		))
 	}
 
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit < 1 {
-		return c.Status(422).JSON(dto.NewExceptionResponse(
-			dto.InvalidQueryParam,
+		return c.Status(422).JSON(dtoexception.NewExceptionResponse(
+			dtoexception.InvalidQueryParam,
 			"invalid limit query parameter: must be negative",
 		))
 	}
 
 	var order string
 	if sort != "full_name" && sort != "created_at" && sort != "updated_at" {
-		return c.Status(422).JSON(dto.NewExceptionResponse(
-			dto.InvalidQueryParam,
+		return c.Status(422).JSON(dtoexception.NewExceptionResponse(
+			dtoexception.InvalidQueryParam,
 			"invalid sort query parameter: must be \"full_name\", \"created_at\", or \"updated_at\"",
 		))
 	}
@@ -67,8 +70,8 @@ func (h *studentHandler) FindAllPaginated(c fiber.Ctx) error {
 	var filterGender model.Gender
 	if filterGenderStr != "" {
 		if filterGenderStr != "male" && filterGenderStr != "female" {
-			return c.Status(422).JSON(dto.NewExceptionResponse(
-				dto.InvalidQueryParam,
+			return c.Status(422).JSON(dtoexception.NewExceptionResponse(
+				dtoexception.InvalidQueryParam,
 				"invalid gender query parameter: must be \"male\" or \"female\"",
 			))
 		}
@@ -93,15 +96,15 @@ func (h *studentHandler) FindAllPaginated(c fiber.Ctx) error {
 	var filterClass string
 	if filterClassStr != "" {
 		if !validClasses[filterClassStr] {
-			return c.Status(422).JSON(dto.NewExceptionResponse(
-				dto.InvalidQueryParam,
+			return c.Status(422).JSON(dtoexception.NewExceptionResponse(
+				dtoexception.InvalidQueryParam,
 				"invalid class query parameter: must be \"N\", \"1\", \"2\", \"3\", \"4\", \"5\", \"6\", \"L\"",
 			))
 		}
 		filterClass = filterClassStr
 	}
 
-	students, total, err := h.service.FindAllPaginated(page, limit, sort, order, filterGender, filterClass, keyword)
+	students, total, err := h.service.FindSomeLimited(page, limit, sort, order, filterGender, filterClass, keyword)
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -110,12 +113,12 @@ func (h *studentHandler) FindAllPaginated(c fiber.Ctx) error {
 		})
 	}
 
-	response := dto.NewPagination(make([]interface{}, len(students)), page, limit, total)
+	response := dtowrapper.NewPaginationWrapperResponse(make([]interface{}, len(students)), page, limit, total)
 
 	for i, v := range students {
 		var student model.Student
 		student = v
-		response.Data[i] = dto.ToStudentResponse(&student)
+		response.Data[i] = dtodata.ToStudentResponse(&student)
 	}
 
 	return c.Status(200).JSON(response)
@@ -132,16 +135,14 @@ func (h *studentHandler) FindDetailById(c fiber.Ctx) error {
 
 	student, err := h.service.FindDetailById(id)
 	if err != nil {
-		return c.Status(404).JSON(fiber.Map{
-			"title": "NOT_FOUND",
-		})
+		return c.Status(404).JSON(dtoexception.NewExceptionResponse(dtoexception.NotFound, nil))
 	}
-	response := dto.ToStudentResponse(student)
-	return c.Status(200).JSON(dto.NewGetOne[dto.StudentResponse](*response))
+	response := dtodata.ToStudentResponse(student)
+	return c.Status(200).JSON(dtowrapper.NewNormalWrapperResponse(*response))
 }
 
 func (h *studentHandler) Create(c fiber.Ctx) error {
-	var req dto.CreateStudentRequest
+	var req dtodata.CreateStudentRequest
 
 	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -149,7 +150,7 @@ func (h *studentHandler) Create(c fiber.Ctx) error {
 		})
 	}
 
-	if err := dto.Validate(&req); err != nil {
+	if err := dtovalidaton.Validate(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
 			"title":  "VALIDATION_ERROR",
 			"errors": err.Errors,
@@ -173,7 +174,16 @@ func (h *studentHandler) Create(c fiber.Ctx) error {
 		})
 	}
 
-	response := dto.ToStudentResponse(student)
+	response := dtodata.ToStudentResponse(student)
 
-	return c.Status(200).JSON(response)
+	return c.Status(201).JSON(response)
+}
+
+func (h *studentHandler) IsIssetName(c fiber.Ctx) error {
+	nameParam := c.Params("full_name")
+	ids, err := h.service.GetIdsByName(nameParam)
+	if err != nil {
+		return c.Status(500).JSON(dtoexception.NewExceptionResponse(dtoexception.InternalErr, err.Error))
+	}
+	return c.Status(200).JSON(dtowrapper.NewNormalWrapperResponse(ids))
 }
