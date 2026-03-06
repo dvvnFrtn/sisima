@@ -5,20 +5,20 @@ import (
 	"time"
 
 	"github.com/dvvnFrtn/sisima/internal/config"
-	"github.com/dvvnFrtn/sisima/internal/dto"
+	dtodata "github.com/dvvnFrtn/sisima/internal/dto/dto_data"
 	model "github.com/dvvnFrtn/sisima/internal/models"
 	"github.com/google/uuid"
 )
 
 type BillingService interface {
-	CreateBillingType(param dto.CreateBillingTypeRequest) error
-	UpdateBillingType(tID uuid.UUID, param dto.UpdateBillingTypeRequest) error
-	GetAllBillingType() ([]dto.BillingTypeResponse, error)
-	GetBillingType(ID uuid.UUID) (dto.BillingTypeResponse, error)
+	CreateBillingType(param dtodata.CreateBillingTypeRequest) error
+	UpdateBillingType(tID uuid.UUID, param dtodata.UpdateBillingTypeRequest) error
+	GetAllBillingType() ([]dtodata.BillingTypeResponse, error)
+	GetBillingType(ID uuid.UUID) (dtodata.BillingTypeResponse, error)
 
-	CreateBilling(param dto.CreateBillingRequest) error
-	GetAllBilling() ([]dto.BillingResponse, error)
-	GetBilling(ID uuid.UUID) (dto.BillingResponse, error)
+	CreateBilling(param dtodata.CreateBillingRequest) error
+	GetAllBilling() ([]dtodata.BillingResponse, error)
+	GetBilling(ID uuid.UUID) (dtodata.BillingResponse, error)
 }
 
 type billingService struct{}
@@ -27,7 +27,7 @@ func NewBillingService() BillingService {
 	return &billingService{}
 }
 
-func (bs *billingService) CreateBillingType(param dto.CreateBillingTypeRequest) error {
+func (bs *billingService) CreateBillingType(param dtodata.CreateBillingTypeRequest) error {
 	if err := config.DB.Create(&model.BillingType{
 		ID:            uuid.New(),
 		Name:          param.Name,
@@ -41,25 +41,25 @@ func (bs *billingService) CreateBillingType(param dto.CreateBillingTypeRequest) 
 	return nil
 }
 
-func (bs *billingService) GetAllBillingType() ([]dto.BillingTypeResponse, error) {
+func (bs *billingService) GetAllBillingType() ([]dtodata.BillingTypeResponse, error) {
 	var bts []model.BillingType
 	if err := config.DB.Find(&bts).Error; err != nil {
-		return []dto.BillingTypeResponse{}, err
+		return []dtodata.BillingTypeResponse{}, err
 	}
 
-	return dto.Map(bts, dto.ToBillingTypeResponse), nil
+	return dtodata.Map(bts, dtodata.ToBillingTypeResponse), nil
 }
 
-func (bs *billingService) GetBillingType(ID uuid.UUID) (dto.BillingTypeResponse, error) {
+func (bs *billingService) GetBillingType(ID uuid.UUID) (dtodata.BillingTypeResponse, error) {
 	var bt model.BillingType
 	if err := config.DB.First(&bt, ID).Error; err != nil {
-		return dto.BillingTypeResponse{}, err
+		return dtodata.BillingTypeResponse{}, err
 	}
 
-	return dto.ToBillingTypeResponse(bt), nil
+	return dtodata.ToBillingTypeResponse(bt), nil
 }
 
-func (bs *billingService) UpdateBillingType(tID uuid.UUID, param dto.UpdateBillingTypeRequest) error {
+func (bs *billingService) UpdateBillingType(tID uuid.UUID, param dtodata.UpdateBillingTypeRequest) error {
 	var bt model.BillingType
 	if err := config.DB.Find(&bt, tID).Error; err != nil {
 		return err
@@ -80,7 +80,7 @@ func (bs *billingService) UpdateBillingType(tID uuid.UUID, param dto.UpdateBilli
 	return nil
 }
 
-func (bs *billingService) CreateBilling(param dto.CreateBillingRequest) error {
+func (bs *billingService) CreateBilling(param dtodata.CreateBillingRequest) error {
 	var bt model.BillingType
 	if err := config.DB.Find(&bt, uuid.MustParse(param.BillingTypeID)).
 		Error; err != nil {
@@ -117,22 +117,22 @@ func (bs *billingService) CreateBilling(param dto.CreateBillingRequest) error {
 	return nil
 }
 
-func (bs *billingService) GetAllBilling() ([]dto.BillingResponse, error) {
+func (bs *billingService) GetAllBilling() ([]dtodata.BillingResponse, error) {
 	var bls []model.Billing
 	if err := config.DB.Find(&bls).Error; err != nil {
-		return []dto.BillingResponse{}, err
+		return []dtodata.BillingResponse{}, err
 	}
 
-	return dto.Map(bls, dto.ToBillingResponse), nil
+	return dtodata.Map(bls, dtodata.ToBillingResponse), nil
 }
 
-func (bs *billingService) GetBilling(ID uuid.UUID) (dto.BillingResponse, error) {
+func (bs *billingService) GetBilling(ID uuid.UUID) (dtodata.BillingResponse, error) {
 	var bl model.Billing
 	if err := config.DB.First(&bl, ID).Error; err != nil {
-		return dto.BillingResponse{}, err
+		return dtodata.BillingResponse{}, err
 	}
 
-	return dto.ToBillingResponse(bl), nil
+	return dtodata.ToBillingResponse(bl), nil
 }
 
 func (bs *billingService) truncateToMonth(t time.Time) time.Time {

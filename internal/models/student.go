@@ -9,8 +9,8 @@ import (
 
 type Student struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey;column:id"`
-	NIS       string    `gorm:"type:varchar(22);unique;not null;column:nis"`
-	NISN      string    `gorm:"type:varchar(22);unique;not null;column:nisn"`
+	NIS       string    `gorm:"type:varchar(22);not null;column:nis"`
+	NISN      string    `gorm:"type:varchar(22);not null;column:nisn"`
 	FullName  string    `gorm:"type:varchar(70);not null;column:full_name"`
 	NickName  string    `gorm:"type:varchar(20);column:nick_name"`
 	Gender    Gender    `gorm:"type:gender_enum;not null;column:gender"`

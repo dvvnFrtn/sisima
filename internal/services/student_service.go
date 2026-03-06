@@ -8,9 +8,10 @@ import (
 
 type StudentService interface {
 	Create(student *model.Student) error
-	FindAllPaginated(page, limit int, sort, order string) ([]model.Student, int64, error)
+	FindSomeLimited(page, limit int, sort, order string, filterGender model.Gender, filterClass string, keyword string) ([]model.Student, int64, error)
 	FindAll() ([]model.Student, error)
 	FindDetailById(id uuid.UUID) (*model.Student, error)
+	GetIdsByName(full_name string) ([]uuid.UUID, error)
 }
 
 // struct
@@ -32,28 +33,49 @@ func (s *studentService) FindAll() ([]model.Student, error) {
 	return students, err
 }
 
-func (s *studentService) FindAllPaginated(page, limit int, sort, order string) ([]model.Student, int64, error) {
+func (s *studentService) FindSomeLimited(
+	page, limit int,
+	sort, order string,
+	filterGender model.Gender,
+	filterClass string,
+	keyword string,
+) ([]model.Student, int64, error) {
+
 	var students []model.Student
 	var total int64
-	config.DB.Model(&model.Student{}).Count(&total)
-	err := config.DB.Limit(limit).Offset((page - 1) * limit).Order(sort + " " + order).Find(&students).Error
+
+	query := config.DB.Model(&model.Student{})
+
+	if filterGender != "" {
+		query = query.Where("gender = ?", filterGender)
+	}
+
+	if filterClass != "" {
+		query = query.Where("class = ?", filterClass)
+	}
+
+	if keyword != "" {
+		query = query.Where(
+			"LOWER(full_name)  LIKE ? OR nis LIKE ? OR nisn LIKE ?",
+			"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%",
+		)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := query.
+		Limit(limit).
+		Offset((page - 1) * limit).
+		Order(sort + " " + order).
+		Find(&students).Error
+
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return students, total, nil
-
-	// data := dto.Pagination{
-	// 	Data: make([]interface{}, len(students)),
-	// 	Meta: dto.Meta{
-	// 		Page: page,
-	// 	},
-	// }
-
-	// for i, v := range students {
-	// 	data.Data[i] = v
-	// }
-
-	// return &data, nil
 }
 
 func (s *studentService) FindDetailById(id uuid.UUID) (*model.Student, error) {
@@ -63,4 +85,16 @@ func (s *studentService) FindDetailById(id uuid.UUID) (*model.Student, error) {
 		return nil, err
 	}
 	return &student, nil
+}
+
+func (s *studentService) GetIdsByName(full_name string) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
+	// ids = append(ids, uuid.New())
+	// return ids, nil
+
+	err := config.DB.Select("id").Find(&ids, "full_name = ?", full_name).Error
+	if err != nil {
+		return nil, err
+	}
+	return ids, nil
 }
