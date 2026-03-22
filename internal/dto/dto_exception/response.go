@@ -5,6 +5,7 @@ type ExceptionTitle string
 
 const (
 	NotFound          ExceptionTitle = "NOT_FOUND"
+	InvalidID         ExceptionTitle = "INVALID_ID"
 	InvalidQueryParam ExceptionTitle = "INVALID_QUERY_PARAM"
 	InvalidRequest    ExceptionTitle = "INVALID_REQUEST"
 	ValidationErr     ExceptionTitle = "VALIDATION_ERROR"

@@ -46,20 +46,17 @@ func (bh *billingHandler) UpdateBillingType(c fiber.Ctx) error {
 	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.InvalidRequest, nil))
-
 	}
 
 	if err := dtovalidaton.Validate(&req); err != nil {
 		return c.Status(fiber.StatusUnprocessableEntity).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.ValidationErr, err.Errors))
-
 	}
 
 	btID := c.Params("billing_type_id")
 	if err := bh.service.UpdateBillingType(uuid.MustParse(btID), req); err != nil {
 		return c.Status(fiber.StatusInternalServerError).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.InternalErr, err.Error()))
-
 	}
 
 	return c.Status(fiber.StatusOK).End()
@@ -70,7 +67,6 @@ func (bh *billingHandler) GetAllBillingType(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.InternalErr, err.Error()))
-
 	}
 
 	return c.Status(fiber.StatusOK).JSON(resp)
@@ -82,7 +78,6 @@ func (bh *billingHandler) GetBillingType(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.InternalErr, err.Error()))
-
 	}
 
 	return c.Status(fiber.StatusOK).JSON(resp)
@@ -93,19 +88,16 @@ func (bh *billingHandler) CreateBilling(c fiber.Ctx) error {
 	if err := c.Bind().Body(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.InvalidRequest, nil))
-
 	}
 
 	if err := dtovalidaton.Validate(&req); err != nil {
 		return c.Status(fiber.StatusUnprocessableEntity).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.ValidationErr, err.Errors))
-
 	}
 
 	if err := bh.service.CreateBilling(req); err != nil {
 		return c.Status(fiber.StatusInternalServerError).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.InternalErr, err.Error()))
-
 	}
 
 	return c.Status(fiber.StatusCreated).End()
@@ -116,7 +108,6 @@ func (bh *billingHandler) GetAllBilling(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.InternalErr, err.Error()))
-
 	}
 
 	return c.Status(fiber.StatusOK).JSON(resp)
@@ -128,7 +119,6 @@ func (bh *billingHandler) GetBilling(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).
 			JSON(dtoexception.NewExceptionResponse(dtoexception.InternalErr, err.Error()))
-
 	}
 
 	return c.Status(fiber.StatusOK).JSON(resp)

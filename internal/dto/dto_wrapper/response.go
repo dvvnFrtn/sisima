@@ -18,13 +18,13 @@ type meta struct {
 	TotalPages int   `json:"total_pages"`
 }
 
-type paginationWrapperResponse struct {
-	Data []interface{} `json:"data"`
-	Meta meta          `json:"meta"`
+type paginationWrapperResponse[T any] struct {
+	Data T    `json:"data"`
+	Meta meta `json:"meta"`
 }
 
-func NewPaginationWrapperResponse(data []interface{}, page, limit int, totalItems int64) paginationWrapperResponse {
-	return paginationWrapperResponse{
+func NewPaginationWrapperResponse[T any](data T, page, limit int, totalItems int64) paginationWrapperResponse[T] {
+	return paginationWrapperResponse[T]{
 		Data: data,
 		Meta: meta{
 			Page:       page,

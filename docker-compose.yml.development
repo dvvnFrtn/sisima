@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  sisima_postgres:
+    image: postgres:16
+    container_name: sisima_postgre
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      POSTGRES_TZ: ${POSTGRES_TZ}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DATABASE}"]
+      interval: 5s
+      retries: 10
+      timeout: 5s
+
+  sisima_redis:
+    image: redis:7
+    container_name: sisima_redis
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+
+volumes:
+  database:

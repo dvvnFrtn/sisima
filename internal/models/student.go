@@ -26,3 +26,16 @@ func (s *Student) BeforeCreate(tx *gorm.DB) error {
 	s.ID = uuid.New()
 	return nil
 }
+
+type StudentWithTotalBills struct {
+	ID        uuid.UUID
+	NIS       string
+	NISN      string
+	FullName  string
+	Gender    Gender
+	Class     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	BillCount int
+	BillTotal int
+}

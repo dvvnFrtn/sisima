@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"strconv"
 
 	dtodata "github.com/dvvnFrtn/sisima/internal/dto/dto_data"
@@ -105,7 +106,6 @@ func (h *studentHandler) FindAllPaginated(c fiber.Ctx) error {
 	}
 
 	students, total, err := h.service.FindSomeLimited(page, limit, sort, order, filterGender, filterClass, keyword)
-
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"title":  "INTERNAL_ERROR",
@@ -116,9 +116,17 @@ func (h *studentHandler) FindAllPaginated(c fiber.Ctx) error {
 	response := dtowrapper.NewPaginationWrapperResponse(make([]interface{}, len(students)), page, limit, total)
 
 	for i, v := range students {
-		var student model.Student
-		student = v
-		response.Data[i] = dtodata.ToStudentResponse(&student)
+		student := v
+		response.Data[i] = dtodata.StudentResponse{
+			ID:         student.ID,
+			NIS:        student.NIS,
+			NISN:       student.NISN,
+			FullName:   student.FullName,
+			Gender:     string(student.Gender),
+			CreatedAt:  student.CreatedAt,
+			UpdatedAt:  student.UpdatedAt,
+			TotalBills: student.BillCount,
+		}
 	}
 
 	return c.Status(200).JSON(response)
@@ -179,11 +187,29 @@ func (h *studentHandler) Create(c fiber.Ctx) error {
 	return c.Status(201).JSON(response)
 }
 
-func (h *studentHandler) IsIssetName(c fiber.Ctx) error {
-	nameParam := c.Params("full_name")
-	ids, err := h.service.GetIdsByName(nameParam)
-	if err != nil {
-		return c.Status(500).JSON(dtoexception.NewExceptionResponse(dtoexception.InternalErr, err.Error))
+// not complete
+func (h *studentHandler) Update(c fiber.Ctx) error {
+	var req dtodata.UpdateStudentRequest
+
+	if err := c.Bind().Body(&req); err != nil {
+		c.Status(400).JSON(dtoexception.NewExceptionResponse(dtoexception.InvalidRequest, err.Error()))
 	}
-	return c.Status(200).JSON(dtowrapper.NewNormalWrapperResponse(ids))
+
+	idParam := c.Params("id")
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"title": "INVALID_ID",
+		})
+	}
+
+	// here
+	student, err := h.service.FindDetailById(id)
+	if err != nil {
+		return c.Status(404).JSON(dtoexception.NewExceptionResponse(dtoexception.NotFound, nil))
+	}
+
+	fmt.Println(student)
+
+	return c.SendStatus(200)
 }
